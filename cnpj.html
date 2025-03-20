@@ -13,18 +13,30 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
-            background-color: #f4f7f9;
-            /* Cor de fundo mais suave */
+            background-color: black;
+            /* Fundo preto */
+            background-image:
+                radial-gradient(circle, rgba(220, 20, 60, 0.08) 10%, transparent 10%),
+                /* Carmesim mais visível */
+                linear-gradient(45deg, rgba(220, 20, 60, 0.05) 25%, transparent 25%, transparent 75%, rgba(220, 20, 60, 0.05) 75%, rgba(220, 20, 60, 0.05)),
+                linear-gradient(-45deg, rgba(220, 20, 60, 0.05) 25%, transparent 25%, transparent 75%, rgba(220, 20, 60, 0.05) 75%, rgba(220, 20, 60, 0.05)),
+                radial-gradient(ellipse at top left, rgba(220, 20, 60, 0.06) 5%, transparent 5%),
+                /* Carmesim sutil no canto */
+                radial-gradient(ellipse at bottom right, rgba(220, 20, 60, 0.06) 5%, transparent 5%);
+            /* Carmesim sutil no canto */
+            background-size: 60px 60px, 30px 30px, 30px 30px, 80px 80px, 100px 100px;
             line-height: 1.6;
-            /* Melhor espaçamento entre linhas */
         }
 
         :root {
-            --primary-color: #3498db;
-            /* Azul mais moderno */
+            --primary-color: #eba92f;
             --light-gray: #e0e0e0;
             --dark-gray: #333;
-            --error-color: #e74c3c;
+            --error-color: #ff6655;
+        }
+
+        h1{
+            color: var(--light-gray);
         }
 
         header {
@@ -33,31 +45,25 @@
             text-align: center;
             padding: 2rem 0;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            /* Sombra sutil */
         }
 
         .container {
             width: 90%;
-            /* Ajuste para responsividade */
             max-width: 600px;
             margin: 3rem auto;
             padding: 2.5rem;
-            background-color: white;
+            background-color: rgb(99, 19, 19);
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            /* Sombra mais destacada */
             text-align: center;
         }
 
         input[type="text"] {
             width: 80%;
-            /* Ajuste para responsividade */
             padding: 1rem;
             margin: 1.5rem 0;
             border: 1px solid var(--light-gray);
             border-radius: 5px;
             transition: border-color 0.3s ease;
-            /* Transição suave */
         }
 
         input[type="text"]:focus {
@@ -67,20 +73,17 @@
 
         button {
             background-color: var(--primary-color);
-            color: white;
+            color: rgb(32, 32, 32);
             padding: 1rem 2rem;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s ease, transform 0.2s ease;
-            /* Transições suaves */
         }
 
         button:hover {
-            background-color: #2980b9;
-            /* Cor mais escura no hover */
+            background-color: #f1dd80;
             transform: translateY(-2px);
-            /* Pequeno efeito de elevação */
             box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
         }
 
@@ -110,13 +113,11 @@
         @media (max-width: 600px) {
             .container {
                 width: 95%;
-                /* Ajuste para telas menores */
                 padding: 1.5rem;
             }
 
             input[type="text"] {
                 width: 90%;
-                /* Ajuste para telas menores */
             }
         }
     </style>
@@ -124,7 +125,7 @@
 
 <body>
     <div class="container">
-        <h1>Consulta CNPJ - ReceitaWS</h1>
+        <h1>Consulta CNPJ</h1>
         <input type="text" id="cnpj" placeholder="Digite o CNPJ (14 dígitos)">
         <button onclick="consultarCNPJ()">Buscar</button>
         <div id="resultado"></div>
@@ -136,13 +137,14 @@
             const cnpj = cnpjInput.value.replace(/\D/g, ''); // Remove caracteres não numéricos
             const resultadoDiv = document.getElementById('resultado');
 
-            if (cnpj.length !== 14) {
-                resultadoDiv.innerHTML = '<p style="color: red;">CNPJ inválido. Digite 14 dígitos.</p>';
-                return;
-            }
-
             const url = `https://cors-anywhere.herokuapp.com/https://receitaws.com.br/v1/cnpj/${cnpj}`;
             const options = { method: 'GET', headers: { Accept: 'application/json' } };
+
+            //Análise de resultado e impressão de erro.
+            if (cnpj.length !== 14) {
+                resultadoDiv.innerHTML = '<p style="color: red;">CNPJ inválido. Digite 14 dígitos.</p>';//404
+                return;
+            }
 
             fetch(url, options)
                 .then(response => {
@@ -168,7 +170,15 @@
                     }
                 })
                 .catch(error => {
-                    resultadoDiv.innerHTML = `<p style="color: red;">Erro ao buscar CNPJ: ${error.message}</p>`;
+                    if (error.value == "429") {
+                        resultadoDiv.innerHTML = `<p style="color: red;">Espere um minuto e tente mais tarde.</p>`;//429
+                        alert("Muitas requisições no servidor, aguarde uns minutos")
+                    } else if (error.value == "500") {
+                        resultadoDiv.innerHTML = `<p style="color: red;">Erro no servidor, por favor informe a equipe de suporte.</p>`//500
+                        alert(error.message);
+                    } else {
+                        resultadoDiv.innerHTML = `<p style="color: red;">Erro ao buscar CNPJ: ${error.message}</p>`//404
+                    }
                 });
         }
     </script>
